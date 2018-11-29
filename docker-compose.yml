@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+    # php-fpm + linked app
+    php-fpm-ubr:
+        container_name: php-fpm-ubr
+        build: ./php-fpm
+        depends_on:
+            - db-ubr
+        expose:
+            - "9090" #xdebug
+        volumes: &source
+            - type: bind
+              source: ${APP_PATH}
+              target: /var/www
+              
+    # database
+    db-ubr:
+        container_name: db-ubr
+        build: ./db
+        env_file: .env
+        restart: always
+        ports:
+            - "6306:3306"
+        volumes:
+            - ./dbdata:/var/lib/mysql
+
+    # webserver
+    nginx-ubr:
+        container_name: nginx-ubr
+        build: ./nginx
+        depends_on:
+            - php-fpm-ubr
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes: *source
